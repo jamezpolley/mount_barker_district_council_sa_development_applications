@@ -16,6 +16,8 @@ sqlite3.verbose();
 request.debug = true;
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
+console.log(process.versions);
+console.log(process.versions.openssl);
 // Sets up an sqlite database.
 async function initializeDatabase() {
     return new Promise((resolve, reject) => {

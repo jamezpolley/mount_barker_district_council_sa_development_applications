@@ -22,6 +22,10 @@ const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmen
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;
+declare const process: any;
+
+console.log(process.versions);
+console.log(process.versions.openssl);
 
 // Sets up an sqlite database.
 
