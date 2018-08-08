@@ -69,11 +69,11 @@ async function main() {
     // Ensure that the database exists.
 
     let database = await initializeDatabase();
-
+    
     // Retrieve the page contains the links to the PDFs.
 
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
-    let body = await request({ url: DevelopmentApplicationsUrl, agentOptions: { secureProtocol: "TLSv1_1_method" } });
+    let body = await request({ url: DevelopmentApplicationsUrl, agentOptions: { secureProtocol: "TLSv1_0_method" } });
     let $ = cheerio.load(body);
 
     let pdfUrls: string[] = [];
