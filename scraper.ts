@@ -13,7 +13,6 @@ import * as pdf2json from "pdf2json";
 import * as urlparser from "url";
 import * as moment from "moment";
 import * as fs from "fs";
-import * as sslrootcas from "ssl-root-cas/latest";
 
 sqlite3.verbose();
 request.debug = true;
@@ -86,8 +85,8 @@ async function main() {
     // :ECDHE-RSA-AES256-SHA:AES256-SHA:RC4-SHA:RC4:HIGH
     // let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method", ca: ca } });
     // let body = await request({ url: DevelopmentApplicationsUrl, agentOptions: { ca: ca } });
-    let certificate = fs.readFileSync("certificate.crt");
-    let ca = fs.readFileSync("bundle3.pem");
+    // let certificate = fs.readFileSync("certificate.crt");
+    // let ca = fs.readFileSync("bundle3.pem");
     let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
     let $ = cheerio.load(body);
 
