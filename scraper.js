@@ -11,6 +11,7 @@ const sqlite3 = require("sqlite3");
 const pdf2json = require("pdf2json");
 const urlparser = require("url");
 const moment = require("moment");
+const fs = require("fs");
 sqlite3.verbose();
 request.debug = true;
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
@@ -65,7 +66,8 @@ async function main() {
     // ciphers: "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"
     // let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, agentOptions: { rejectUnauthorized: false, securityOptions: "SSL_OP_NO_SSLv3" } });
     // :ECDHE-RSA-AES256-SHA:AES256-SHA:RC4-SHA:RC4:HIGH
-    let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
+    let certificate = fs.readFileSync("certificate.crt");
+    let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method", ca: certificate } });
     let $ = cheerio.load(body);
     let pdfUrls = [];
     for (let element of $("td.uContentListDesc a[href$='.pdf']").get()) {
