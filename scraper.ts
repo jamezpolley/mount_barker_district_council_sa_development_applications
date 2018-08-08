@@ -14,12 +14,12 @@ import * as urlparser from "url";
 import * as moment from "moment";
 
 sqlite3.verbose();
+request.debug = true;
 
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;
-declare const process: any;
 
 // Sets up an sqlite database.
 
@@ -78,7 +78,6 @@ async function main() {
     // ciphers: "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"
     // let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, agentOptions: { rejectUnauthorized: false, securityOptions: "SSL_OP_NO_SSLv3" } });
     // :ECDHE-RSA-AES256-SHA:AES256-SHA:RC4-SHA:RC4:HIGH
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
     let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
     let $ = cheerio.load(body);
 
