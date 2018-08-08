@@ -19,9 +19,6 @@ const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmen
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;
-declare const process: any;
-
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Sets up an sqlite database.
 
@@ -76,7 +73,7 @@ async function main() {
     // Retrieve the page contains the links to the PDFs.
 
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
-    let body = await request({ url: DevelopmentApplicationsUrl, agentOptions: { verify_mode: false, use_ssl: false } });
+    let body = await request({ url: DevelopmentApplicationsUrl, agentOptions: { secureProtocol: "SSLv23_method" } });
     let $ = cheerio.load(body);
 
     let pdfUrls: string[] = [];
