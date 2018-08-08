@@ -1,7 +1,8 @@
 {
   "version": "1.0.0",
   "engines": {
-    "node": "10.6.0"
+    "node": "10.6.0",
+    "openssl": "1.0.2n"
   },
   "main": "scraper.js",
   "dependencies": {
