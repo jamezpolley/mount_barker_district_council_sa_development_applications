@@ -60,7 +60,9 @@ async function main() {
     let database = await initializeDatabase();
     // Retrieve the page contains the links to the PDFs.
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
-    let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, agentOptions: { securityOptions: 'SSL_OP_NO_SSLv3' } });
+    // secureProtocol: "TLSv1_method"
+    // ciphers: "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"
+    let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, agentOptions: { rejectUnauthorized: false, securityOptions: "SSL_OP_NO_SSLv3" } });
     let $ = cheerio.load(body);
     let pdfUrls = [];
     for (let element of $("td.uContentListDesc a[href$='.pdf']").get()) {
