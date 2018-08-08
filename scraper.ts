@@ -76,7 +76,7 @@ async function main() {
     // Retrieve the page contains the links to the PDFs.
 
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
-    let body = await request({ url: DevelopmentApplicationsUrl });  // , agentOptions: { secureProtocol: "SSLv1_method" } });
+    let body = await request({ url: DevelopmentApplicationsUrl, agentOptions: { verify_mode: false, use_ssl: false } });
     let $ = cheerio.load(body);
 
     let pdfUrls: string[] = [];
