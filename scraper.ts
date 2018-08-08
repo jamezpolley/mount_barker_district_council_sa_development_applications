@@ -15,7 +15,7 @@ import * as moment from "moment";
 
 sqlite3.verbose();
 
-const DevelopmentApplicationsUrl = "http://www.mountbarker.sa.gov.au/developmentregister";
+const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;

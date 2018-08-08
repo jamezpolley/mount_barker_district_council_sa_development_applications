@@ -12,7 +12,7 @@ const pdf2json = require("pdf2json");
 const urlparser = require("url");
 const moment = require("moment");
 sqlite3.verbose();
-const DevelopmentApplicationsUrl = "http://www.mountbarker.sa.gov.au/developmentregister";
+const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 // Sets up an sqlite database.
 async function initializeDatabase() {
