@@ -23,8 +23,29 @@ const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 declare const global: any;
 declare const process: any;
 
-console.log(process.versions);
-console.log(process.versions.openssl);
+// console.log(process.versions);
+// console.log(process.versions.openssl);
+// const tls = require("tls");
+// const socket = tls.connect("www.mountbarker.sa.gov.au", { path: "/developmentregister", rejectUnauthorized: false }, () => {
+//     console.log(socket.authorized);
+// });
+// socket.on("data", data => {
+//     console.log(data);
+// });
+// socket.on("end", data => {
+//     socket.close();
+// });
+
+// console.log("Complete.");
+// console.log("Complete.");
+// console.log("Complete.");
+// console.log("Complete.");
+// console.log("Complete.");
+// console.log("Complete.");
+// console.log("Complete.");
+// console.log("Complete.");
+// console.log("Complete.");
+// console.log("Complete.");
 
 // Sets up an sqlite database.
 
@@ -87,7 +108,8 @@ async function main() {
     // let body = await request({ url: DevelopmentApplicationsUrl, agentOptions: { ca: ca } });
     // let certificate = fs.readFileSync("certificate.crt");
     // let ca = fs.readFileSync("bundle3.pem");
-    let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
+    // let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
+    let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "RSA-AES256-SHA384" } });
     let $ = cheerio.load(body);
 
     let pdfUrls: string[] = [];
