@@ -44,7 +44,7 @@ async function readPDF() {
 sqlite3.verbose();
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
-process.env.NODE_DEBUG = "request";
+process.env.NODE_DEBUG = "request http https ssl tls socket";
 process.env.NODE_VERBOSE = true;
 // Sets up an sqlite database.
 async function initializeDatabase() {
