@@ -15,37 +15,12 @@ import * as moment from "moment";
 import * as fs from "fs";
 
 sqlite3.verbose();
-request.debug = true;
 
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;
 declare const process: any;
-
-// console.log(process.versions);
-// console.log(process.versions.openssl);
-// const tls = require("tls");
-// const socket = tls.connect("www.mountbarker.sa.gov.au", { path: "/developmentregister", rejectUnauthorized: false }, () => {
-//     console.log(socket.authorized);
-// });
-// socket.on("data", data => {
-//     console.log(data);
-// });
-// socket.on("end", data => {
-//     socket.close();
-// });
-
-// console.log("Complete.");
-// console.log("Complete.");
-// console.log("Complete.");
-// console.log("Complete.");
-// console.log("Complete.");
-// console.log("Complete.");
-// console.log("Complete.");
-// console.log("Complete.");
-// console.log("Complete.");
-// console.log("Complete.");
 
 // Sets up an sqlite database.
 
