@@ -119,6 +119,7 @@ async function main() {
                 // Convert the JSON representation of the PDF into a collection of PDF rows.
                 console.log(`Parsing document: ${pdfUrl}`);
                 console.log("Stopping early.");
+                return;
                 let rows = convertPdfToText(pdf);
                 let developmentApplications = [];
                 let developmentApplication = null;

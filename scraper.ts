@@ -147,6 +147,7 @@ async function main() {
 
                 console.log(`Parsing document: ${pdfUrl}`);
 console.log("Stopping early.");
+return;
                 let rows = convertPdfToText(pdf);
 
                 let developmentApplications = [];
