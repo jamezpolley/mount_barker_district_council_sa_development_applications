@@ -108,7 +108,17 @@ async function main() {
     // let body = await request({ url: DevelopmentApplicationsUrl, agentOptions: { ca: ca } });
     // let certificate = fs.readFileSync("certificate.crt");
     // let ca = fs.readFileSync("bundle3.pem");
-    let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
+    let body = await request({ url: DevelopmentApplicationsUrl, headers: {  
+        "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
+        "Accept-Encoding": "",
+        "Accept-Language": "en-AU, en-US; q=0.7, en; q=0.3",
+        "Cache-Control": "max-age=0",
+        "Connection": "keep-alive",
+        "DNT": "1",
+        "Host": "www.mountbarker.sa.gov.au",
+        "Upgrade-Insecure-Requests": "1",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134"
+    }, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
     let $ = cheerio.load(body);
 
     let pdfUrls: string[] = [];
