@@ -95,6 +95,8 @@ async function main() {
         // Parse the PDF into a collection of PDF rows.  Each PDF row is simply an array of
         // strings, being the text that has been parsed from the PDF.
         let pdfParser = new pdf2json();
+        if (global.gc)
+            global.gc();
         let pdfPipe = request({ url: pdfUrl, encoding: null, proxy: process.env.MORPH_PROXY, headers: {
                 "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
                 "Accept-Encoding": "",
@@ -106,6 +108,8 @@ async function main() {
                 "Upgrade-Insecure-Requests": "1",
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134"
             } }).pipe(pdfParser);
+        if (global.gc)
+            global.gc();
         pdfPipe.on("pdfParser_dataError", error => {
             console.log("In pdfParser_dataError catch.");
             console.log(error);
