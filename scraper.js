@@ -8,9 +8,31 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const cheerio = require("cheerio");
 const request = require("request-promise-native");
 const sqlite3 = require("sqlite3");
-const pdf2json = require("pdf2json");
 const urlparser = require("url");
 const moment = require("moment");
+const fs = require("fs");
+// import path = require("path");
+// let loader = require.extensions[".js"];
+// require.extensions[".js"] = function(nodeModule, filename) {
+//     if (filename === path.resolve(path.dirname(nodeModule.filename), "xpdfparser.js")) {
+//         let text = fs.readFileSync(filename, "utf8");
+//         text += "\nmodule.exports.TEST = PDFJS;\n";
+//         return text;
+//         nodeModule._compile(text, filename);
+//     } else {
+//         loader(module, filename);
+//     }
+// };
+const pdfjs = require("pdfjs-dist");
+async function readPDF() {
+    // Read file into buffer
+    const buffer = await fs.readFileSync("Test.pdf");
+    // Parse PDF from buffer
+    const pdf = await pdfjs.getDocument({ data: buffer });
+    console.log(`Complete: page count is ${pdf.numPages}.`);
+}
+readPDF();
+const pdf2json = require("pdf2json");
 sqlite3.verbose();
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
@@ -95,6 +117,8 @@ async function main() {
         // Parse the PDF into a collection of PDF rows.  Each PDF row is simply an array of
         // strings, being the text that has been parsed from the PDF.
         let pdfParser = new pdf2json();
+        // pdfParser.setVerbosity(5);
+        pdfParser.PDFJS.maxImageSize = 100;
         if (global.gc)
             global.gc();
         let pdfPipe = request({ url: pdfUrl, encoding: null, proxy: process.env.MORPH_PROXY, headers: {
@@ -308,5 +332,4 @@ function convertPdfToText(pdf) {
     ;
     return rows;
 }
-main().catch(error => console.error(error));
 //# sourceMappingURL=scraper.js.map

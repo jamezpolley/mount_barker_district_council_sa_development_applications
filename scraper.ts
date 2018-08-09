@@ -9,10 +9,36 @@
 import * as cheerio from "cheerio";
 import * as request from "request-promise-native";
 import * as sqlite3 from "sqlite3";
-import * as pdf2json from "pdf2json";
 import * as urlparser from "url";
 import * as moment from "moment";
 import * as fs from "fs";
+
+// import path = require("path");
+// let loader = require.extensions[".js"];
+// require.extensions[".js"] = function(nodeModule, filename) {
+//     if (filename === path.resolve(path.dirname(nodeModule.filename), "xpdfparser.js")) {
+//         let text = fs.readFileSync(filename, "utf8");
+//         text += "\nmodule.exports.TEST = PDFJS;\n";
+//         return text;
+//         nodeModule._compile(text, filename);
+//     } else {
+//         loader(module, filename);
+//     }
+// };
+
+import * as pdfjs from "pdfjs-dist";
+
+async function readPDF() {
+    // Read file into buffer
+    const buffer = await fs.readFileSync("Test.pdf");
+    // Parse PDF from buffer
+    const pdf = await pdfjs.getDocument({data: buffer});
+    console.log(`Complete: page count is ${pdf.numPages}.`);
+}
+
+readPDF();
+
+import pdf2json = require("pdf2json");
 
 sqlite3.verbose();
 
@@ -118,6 +144,8 @@ async function main() {
         // strings, being the text that has been parsed from the PDF.
 
         let pdfParser = new pdf2json();
+        // pdfParser.setVerbosity(5);
+        pdfParser.PDFJS.maxImageSize = 100;
 
         if (global.gc)
             global.gc();
@@ -373,4 +401,4 @@ function convertPdfToText(pdf) {
     return rows;
 }
 
-main().catch(error => console.error(error));
+// main().catch(error => console.error(error));
