@@ -41,10 +41,10 @@ async function readPDF() {
     }
     console.log(`Complete: page count is ${pdf.numPages}.`);
 }
-readPDF();
 sqlite3.verbose();
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
+process.env.NODE_DEBUG = "request";
 // Sets up an sqlite database.
 async function initializeDatabase() {
     return new Promise((resolve, reject) => {
@@ -91,7 +91,8 @@ async function main() {
     let database = await initializeDatabase();
     // Retrieve the page contains the links to the PDFs.
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
-    let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY, headers: {
+    // let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY, headers: {
+    let body = await request({ url: DevelopmentApplicationsUrl, headers: {
             "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
             "Accept-Encoding": "",
             "Accept-Language": "en-AU, en-US; q=0.7, en; q=0.3",
@@ -103,6 +104,8 @@ async function main() {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134"
         } });
     let $ = cheerio.load(body);
+    console.log("Stopping early.");
+    return;
     let pdfUrls = [];
     for (let element of $("td.uContentListDesc a[href$='.pdf']").get()) {
         let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl).href;
@@ -118,9 +121,8 @@ async function main() {
     // process).
     let selectedPdfUrls = [];
     selectedPdfUrls.push(pdfUrls.shift());
-    console.log("Just selecting one PDF.");
-    // if (pdfUrls.length > 0)
-    //     selectedPdfUrls.push(pdfUrls[getRandom(1, pdfUrls.length)]);
+    if (pdfUrls.length > 0)
+        selectedPdfUrls.push(pdfUrls[getRandom(1, pdfUrls.length)]);
     for (let pdfUrl of selectedPdfUrls) {
         console.log(`Retrieving document: ${pdfUrl}`);
         // Parse the PDF into a collection of PDF rows.  Each PDF row is simply an array of
@@ -341,4 +343,5 @@ function convertPdfToText(pdf) {
     ;
     return rows;
 }
+main().catch(error => console.error(error));
 //# sourceMappingURL=scraper.js.map

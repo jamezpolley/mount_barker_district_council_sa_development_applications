@@ -14,8 +14,7 @@
     "request": "^2.87.0",
     "request-promise-native": "^1.0.5",
     "sqlite3": "^4.0.1",
-    "url": "^0.11.0",
-    "pcap": "^2.0.1"
+    "url": "^0.11.0"
   },
   "keywords": [
     "scraper",

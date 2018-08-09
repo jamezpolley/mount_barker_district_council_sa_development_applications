@@ -13,7 +13,6 @@ import * as urlparser from "url";
 import * as moment from "moment";
 import * as fs from "fs";
 import pdf2json = require("pdf2json");
-import pcap = require("pcap");
 
 // import path = require("path");
 // let loader = require.extensions[".js"];
@@ -56,6 +55,8 @@ const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;
 declare const process: any;
+
+process.env.NODE_DEBUG = "request";
 
 // Sets up an sqlite database.
 
@@ -109,17 +110,6 @@ async function main() {
     
     // Retrieve the page contains the links to the PDFs.
 
-    let pcapSession = pcap.createSession("", "tcp");
-    pcapSession.on('packet', function (raw_packet) {
-        var packet = pcap.decode.packet(raw_packet),
-            data = packet.link.ip.tcp.data;
-    
-        if (data) {
-            console.log(pcap.print.packet(packet));
-            console.log(data.toString());
-        }
-    });
-    
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
 
     // let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY, headers: {
