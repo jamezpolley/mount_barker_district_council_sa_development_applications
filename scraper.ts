@@ -13,6 +13,7 @@ import * as urlparser from "url";
 import * as moment from "moment";
 import * as fs from "fs";
 import pdf2json = require("pdf2json");
+import pcap = require("pcap");
 
 // import path = require("path");
 // let loader = require.extensions[".js"];
@@ -47,8 +48,6 @@ async function readPDF() {
     }
     console.log(`Complete: page count is ${pdf.numPages}.`);
 }
-
-readPDF();
 
 sqlite3.verbose();
 
@@ -110,8 +109,21 @@ async function main() {
     
     // Retrieve the page contains the links to the PDFs.
 
+    let pcapSession = pcap.createSession("", "tcp");
+    pcapSession.on('packet', function (raw_packet) {
+        var packet = pcap.decode.packet(raw_packet),
+            data = packet.link.ip.tcp.data;
+    
+        if (data) {
+            console.log(pcap.print.packet(packet));
+            console.log(data.toString());
+        }
+    });
+    
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
-    let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY, headers: {
+
+    // let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY, headers: {
+    let body = await request({ url: DevelopmentApplicationsUrl, headers: {
         "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
         "Accept-Encoding": "",
         "Accept-Language": "en-AU, en-US; q=0.7, en; q=0.3",
@@ -124,6 +136,9 @@ async function main() {
     }});
 
     let $ = cheerio.load(body);
+
+console.log("Stopping early.");
+return;
 
     let pdfUrls: string[] = [];
     for (let element of $("td.uContentListDesc a[href$='.pdf']").get()) {
@@ -143,9 +158,8 @@ async function main() {
 
     let selectedPdfUrls: string[] = [];
     selectedPdfUrls.push(pdfUrls.shift());
-    console.log("Just selecting one PDF.");
-    // if (pdfUrls.length > 0)
-    //     selectedPdfUrls.push(pdfUrls[getRandom(1, pdfUrls.length)]);
+    if (pdfUrls.length > 0)
+        selectedPdfUrls.push(pdfUrls[getRandom(1, pdfUrls.length)]);
 
     for (let pdfUrl of selectedPdfUrls) {
         console.log(`Retrieving document: ${pdfUrl}`);
@@ -411,4 +425,4 @@ function convertPdfToText(pdf) {
     return rows;
 }
 
-// main().catch(error => console.error(error));
+main().catch(error => console.error(error));
