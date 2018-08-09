@@ -110,10 +110,15 @@ async function main() {
             console.log("In pdfParser_dataError catch.");
             console.log(error);
         });
+        // Attempt to avoid reaching 512 MB memory usage (this will otherwise result in
+        // the current process being terminated by morph.io).
+        if (global.gc)
+            global.gc();
         pdfPipe.on("pdfParser_dataReady", async (pdf) => {
             try {
                 // Convert the JSON representation of the PDF into a collection of PDF rows.
                 console.log(`Parsing document: ${pdfUrl}`);
+                console.log("Stopping early.");
                 let rows = convertPdfToText(pdf);
                 let developmentApplications = [];
                 let developmentApplication = null;

@@ -129,15 +129,24 @@ async function main() {
             "Upgrade-Insecure-Requests": "1",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134"
         }}).pipe(pdfParser);
+
         pdfPipe.on("pdfParser_dataError", error => {
             console.log("In pdfParser_dataError catch.");
             console.log(error);
         });
+
+        // Attempt to avoid reaching 512 MB memory usage (this will otherwise result in
+        // the current process being terminated by morph.io).
+
+        if (global.gc)
+            global.gc();
+
         pdfPipe.on("pdfParser_dataReady", async pdf => {
             try {
                 // Convert the JSON representation of the PDF into a collection of PDF rows.
 
                 console.log(`Parsing document: ${pdfUrl}`);
+console.log("Stopping early.");
                 let rows = convertPdfToText(pdf);
 
                 let developmentApplications = [];
