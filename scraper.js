@@ -46,6 +46,7 @@ const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmen
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 process.env.NODE_DEBUG = "request http https ssl tls socket";
 process.env.NODE_VERBOSE = true;
+console.log(process.versions);
 // Sets up an sqlite database.
 async function initializeDatabase() {
     return new Promise((resolve, reject) => {

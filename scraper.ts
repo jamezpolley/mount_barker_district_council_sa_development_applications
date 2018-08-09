@@ -58,6 +58,7 @@ declare const process: any;
 
 process.env.NODE_DEBUG = "request http https ssl tls socket";
 process.env.NODE_VERBOSE = true;
+console.log(process.versions);
 
 // Sets up an sqlite database.
 
