@@ -11,6 +11,7 @@ const sqlite3 = require("sqlite3");
 const urlparser = require("url");
 const moment = require("moment");
 const fs = require("fs");
+const pdf2json = require("pdf2json");
 // import path = require("path");
 // let loader = require.extensions[".js"];
 // require.extensions[".js"] = function(nodeModule, filename) {
@@ -29,10 +30,18 @@ async function readPDF() {
     const buffer = await fs.readFileSync("Test.pdf");
     // Parse PDF from buffer
     const pdf = await pdfjs.getDocument({ data: buffer });
+    for (let index = 0; index < pdf.numPages; index++) {
+        console.log(`Parsing page ${index + 1} of ${pdf.numPages}.`);
+        let page = await pdf.getPage(index + 1);
+        let textContent = await page.getTextContent();
+        let test = await page.getOperatorList();
+        let count = 0;
+        for (let item of textContent.items)
+            count++; // console.log(item);
+    }
     console.log(`Complete: page count is ${pdf.numPages}.`);
 }
 readPDF();
-const pdf2json = require("pdf2json");
 sqlite3.verbose();
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";

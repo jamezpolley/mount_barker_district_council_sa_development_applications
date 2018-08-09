@@ -12,6 +12,7 @@ import * as sqlite3 from "sqlite3";
 import * as urlparser from "url";
 import * as moment from "moment";
 import * as fs from "fs";
+import pdf2json = require("pdf2json");
 
 // import path = require("path");
 // let loader = require.extensions[".js"];
@@ -33,12 +34,21 @@ async function readPDF() {
     const buffer = await fs.readFileSync("Test.pdf");
     // Parse PDF from buffer
     const pdf = await pdfjs.getDocument({data: buffer});
+
+
+    for (let index = 0; index < pdf.numPages; index++) {
+        console.log(`Parsing page ${index + 1} of ${pdf.numPages}.`);
+        let page = await pdf.getPage(index + 1);
+        let textContent = await page.getTextContent();
+        let test = await page.getOperatorList();
+        let count = 0;
+        for (let item of textContent.items)
+            count++;  // console.log(item);
+    }
     console.log(`Complete: page count is ${pdf.numPages}.`);
 }
 
 readPDF();
-
-import pdf2json = require("pdf2json");
 
 sqlite3.verbose();
 
