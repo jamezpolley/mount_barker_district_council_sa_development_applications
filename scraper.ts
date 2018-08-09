@@ -108,8 +108,7 @@ async function main() {
     // let body = await request({ url: DevelopmentApplicationsUrl, agentOptions: { ca: ca } });
     // let certificate = fs.readFileSync("certificate.crt");
     // let ca = fs.readFileSync("bundle3.pem");
-    // let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
-    let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "RSA-AES256-SHA384" } });
+    let body = await request({ url: DevelopmentApplicationsUrl, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
     let $ = cheerio.load(body);
 
     let pdfUrls: string[] = [];
