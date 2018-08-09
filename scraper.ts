@@ -118,7 +118,7 @@ async function main() {
         "Host": "www.mountbarker.sa.gov.au",
         "Upgrade-Insecure-Requests": "1",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134"
-    }, strictSSL: false, rejectUnauthorized: false, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
+    }, strictSSL: false, rejectUnauthorized: false, proxy: process.env.MORPH_PROXY, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
     let $ = cheerio.load(body);
 
     let pdfUrls: string[] = [];
