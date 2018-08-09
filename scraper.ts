@@ -57,6 +57,7 @@ declare const global: any;
 declare const process: any;
 
 process.env.NODE_DEBUG = "request";
+process.env.NODE_VERBOSE = true;
 
 // Sets up an sqlite database.
 
