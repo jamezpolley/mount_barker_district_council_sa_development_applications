@@ -108,7 +108,7 @@ async function main() {
     // let body = await request({ url: DevelopmentApplicationsUrl, agentOptions: { ca: ca } });
     // let certificate = fs.readFileSync("certificate.crt");
     // let ca = fs.readFileSync("bundle3.pem");
-    let body = await request({ url: DevelopmentApplicationsUrl, headers: {  
+    let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY, headers: {
         "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
         "Accept-Encoding": "",
         "Accept-Language": "en-AU, en-US; q=0.7, en; q=0.3",
@@ -118,7 +118,8 @@ async function main() {
         "Host": "www.mountbarker.sa.gov.au",
         "Upgrade-Insecure-Requests": "1",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134"
-    }, strictSSL: false, rejectUnauthorized: false, proxy: process.env.MORPH_PROXY, agentOptions: { ciphers: "ECDHE-RSA-AES256-SHA384", secureProtocol: "TLSv1_2_method" } });
+    }});
+
     let $ = cheerio.load(body);
 
     let pdfUrls: string[] = [];
@@ -149,7 +150,17 @@ async function main() {
         // strings, being the text that has been parsed from the PDF.
 
         let pdfParser = new pdf2json();
-        let pdfPipe = request({ url: pdfUrl, encoding: null }).pipe(pdfParser);
+        let pdfPipe = request({ url: pdfUrl, encoding: null, proxy: process.env.MORPH_PROXY, headers: {
+            "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
+            "Accept-Encoding": "",
+            "Accept-Language": "en-AU, en-US; q=0.7, en; q=0.3",
+            "Cache-Control": "max-age=0",
+            "Connection": "keep-alive",
+            "DNT": "1",
+            "Host": "www.mountbarker.sa.gov.au",
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134"
+        }}).pipe(pdfParser);
         pdfPipe.on("pdfParser_dataError", error => {
             console.log("In pdfParser_dataError catch.");
             console.log(error);
