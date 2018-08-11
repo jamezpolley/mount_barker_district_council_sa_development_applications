@@ -135,17 +135,7 @@ async function parsePdf(url: string) {
 
     // Read the PDF.
 
-    let buffer = await request({ url: url, encoding: null, proxy: process.env.MORPH_PROXY, headers: {
-        "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
-        "Accept-Encoding": "",
-        "Accept-Language": "en-AU, en-US; q=0.7, en; q=0.3",
-        "Cache-Control": "max-age=0",
-        "Connection": "keep-alive",
-        "DNT": "1",
-        "Host": "www.mountbarker.sa.gov.au",
-        "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134"
-    }});
+    let buffer = await request({ url: url, encoding: null, proxy: process.env.MORPH_PROXY });
 
     // Parse the PDF.  Each page has details of a single application (which in some cases may
     // overflow onto subsequent pages).
@@ -200,6 +190,12 @@ async function parsePdf(url: string) {
     return developmentApplications;
 }
 
+// Gets a random integer in the specified range: [minimum, maximum).
+
+function getRandom(minimum: number, maximum: number) {
+    return Math.floor(Math.random() * (Math.floor(maximum) - Math.ceil(minimum))) + Math.ceil(minimum);
+}
+
 // Parses the development applications.
 
 async function main() {
@@ -211,19 +207,7 @@ async function main() {
 
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
 
-    // let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY, headers: {
-    let body = await request({ url: DevelopmentApplicationsUrl, headers: {
-        "Accept": "text/html, application/xhtml+xml, application/xml; q=0.9, */*; q=0.8",
-        "Accept-Encoding": "",
-        "Accept-Language": "en-AU, en-US; q=0.7, en; q=0.3",
-        "Cache-Control": "max-age=0",
-        "Connection": "keep-alive",
-        "DNT": "1",
-        "Host": "www.mountbarker.sa.gov.au",
-        "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.140 Safari/537.36 Edge/17.17134"
-    }, agentOptions: { ciphers: "ECDHE_RSA_AES128_SHA256:ECDHE_ECDSA_AES128_SHA256:ECDHE_RSA_AES256_SHA384:ECDHE_ECDSA_AES256_SHA384:DHE_RSA_AES128_SHA256:ECDHE_RSA_AES128_SHA256:DHE_RSA_AES128_SHA256:ECDHE_RSA_AES256_SHA384:DHE_RSA_AES256_SHA256:ECDHE_ECDSA_AES256_SHA384:ECDHE_RSA_AES256_SHA:ECDHE_ECDSA_AES256_SHA:DH_DSS_AES256_SHA384:DHE_DSS_AES256_SHA384:DH_RSA_AES256_SHA384:DHE_RSA_AES256_SHA384:DHE_DSS_AES256_SHA256:DH_RSA_AES256_SHA256:DH_DSS_AES256_SHA256:DHE_RSA_AES256_SHA:DHE_DSS_AES256_SHA:DH_RSA_AES256_SHA:DH_DSS_AES256_SHA:ECDH_RSA_AES256_SHA384:ECDH_ECDSA_AES256_SHA384:ECDH_RSA_AES256_SHA384:ECDH_ECDSA_AES256_SHA384:ECDH_RSA_AES256_SHA:ECDH_ECDSA_AES256_SHA:RSA_AES256_SHA384:RSA_AES256_SHA256:RSA_AES256_SHA:ECDHE_ECDSA_AES128_SHA256:ECDHE_RSA_AES128_SHA:ECDHE_ECDSA_AES128_SHA:DH_DSS_AES128_SHA256:DHE_DSS_AES128_SHA256:DH_RSA_AES128_SHA256:DHE_DSS_AES128_SHA256:DH_RSA_AES128_SHA256:DH_DSS_AES128_SHA256:DHE_RSA_AES128_SHA:DHE_DSS_AES128_SHA:DH_RSA_AES128_SHA:DH_DSS_AES128_SHA:ECDH_RSA_AES128_SHA256:ECDH_ECDSA_AES128_SHA256:ECDH_RSA_AES128_SHA256:ECDH_ECDSA_AES128_SHA256:ECDH_RSA_AES128_SHA:ECDH_ECDSA_AES128_SHA:RSA_AES128_SHA256:RSA_AES128_SHA256:RSA_AES128_SHA:EMPTY_RENEGOTIATION_INFO_SCSV" } });
-
+    let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY });
     let $ = cheerio.load(body);
 
     let pdfUrls: string[] = [];
@@ -261,12 +245,6 @@ async function main() {
         for (let developmentApplication of developmentApplications)
             await insertRow(database, developmentApplication);
     }
-}
-
-// Gets a random integer in the specified range: [minimum, maximum).
-
-function getRandom(minimum: number, maximum: number) {
-    return Math.floor(Math.random() * (Math.floor(maximum) - Math.ceil(minimum))) + Math.ceil(minimum);
 }
 
 main().then(() => console.log("Complete.")).catch(error => console.error(error));
