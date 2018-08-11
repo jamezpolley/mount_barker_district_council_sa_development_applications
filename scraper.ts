@@ -128,7 +128,7 @@ function findClosestElement(elements: Element[], text: string, direction: Direct
     return closestElement;
 }
 
-// Reads and parse development application details from the specifed PDF.
+// Reads and parses development application details from the specified PDF.
 
 async function parsePdf(url: string) {
     let developmentApplications = [];
