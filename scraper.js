@@ -155,7 +155,7 @@ function getRandom(minimum, maximum) {
 async function main() {
     // Ensure that the database exists.
     let database = await initializeDatabase();
-    // Retrieve the page contains the links to the PDFs.
+    // Retrieve the page that contains the links to the PDFs.
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
     let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY });
     let $ = cheerio.load(body);
