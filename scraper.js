@@ -1,6 +1,10 @@
 // Parses the development application at the South Australian Mount Barker District Council web
 // site and places them in a database.
 //
+// In each VSCode session: to automatically compile this TypeScript script into JavaScript whenever
+// the TypeScript is changed and saved, press Ctrl+Shift+B and select "tsc:watch - tsconfig.json".
+// This starts a task that watches for changes to the TypeScript script.
+//
 // Michael Bone
 // 8th August 2018
 "use strict";
@@ -25,21 +29,85 @@ const pdf2json = require("pdf2json");
 //     }
 // };
 const pdfjs = require("pdfjs-dist");
-async function readPDF() {
-    // Read file into buffer
-    const buffer = await fs.readFileSync("Test.pdf");
-    // Parse PDF from buffer
+var Direction;
+(function (Direction) {
+    Direction[Direction["Right"] = 0] = "Right";
+    Direction[Direction["Down"] = 1] = "Down";
+})(Direction || (Direction = {}));
+// Calculates the Euclidean distance between two elements in the specified direction.
+function calculateDistance(element1, element2, direction) {
+    if (direction === Direction.Right) {
+        let point1 = { x: element1.x + element1.width, y: element1.y + element1.height / 2 };
+        let point2 = { x: element2.x, y: element2.y + element2.height / 2 };
+        if (point2.x < point1.x - element1.width / 5) // arbitrary factor of 20%
+            return Number.MAX_VALUE;
+        return (point2.x - point1.x) * (point2.x - point1.x) + (point2.y - point1.y) * (point2.y - point1.y);
+    }
+    else if (direction === Direction.Down) {
+        let point1 = { x: element1.x + element1.width / 2, y: element1.y + element1.height };
+        let point2 = { x: Math.min(element2.x + element1.width / 2, element2.x + element2.width), y: element2.y };
+        if (point2.y < point1.y - element1.height / 2) // arbitrary factor of 50%
+            return Number.MAX_VALUE;
+        return (point2.x - point1.x) * (point2.x - point1.x) + (point2.y - point1.y) * (point2.y - point1.y);
+    }
+    return Number.MAX_VALUE;
+}
+// Determines whether the is overlap between the two elements in the specified direction.
+function isOverlap(element1, element2, direction) {
+    if (direction === Direction.Right)
+        return element2.y < element1.y + element1.height && element2.y + element2.height > element1.y;
+    else if (direction === Direction.Down)
+        return element2.x < element1.x + element1.width && element2.x + element2.width > element1.x;
+    return false;
+}
+// Find the closest element either right or down from the element with the specified text.
+function findClosestElement(elements, text, direction) {
+    let matchingElement = elements.find(element => element.text.startsWith(text));
+    if (matchingElement === undefined)
+        return undefined;
+    let closestElement = undefined;
+    for (let element of elements)
+        if (closestElement === undefined || (isOverlap(matchingElement, element, direction) && calculateDistance(matchingElement, element, direction) < calculateDistance(matchingElement, closestElement, direction)))
+            closestElement = element;
+    return closestElement;
+}
+async function readPdf() {
+    // Read the PDF.
+    let buffer = await fs.readFileSync("C:\\Temp\\Mount Barker District Council\\Monthly Building Report - June 2018.pdf");
+    // Parse the PDF.
     const pdf = await pdfjs.getDocument({ data: buffer });
     for (let index = 0; index < pdf.numPages; index++) {
         console.log(`Parsing page ${index + 1} of ${pdf.numPages}.`);
         let page = await pdf.getPage(index + 1);
+        let viewport = page.getViewport(1.0);
         let textContent = await page.getTextContent();
-        let test = await page.getOperatorList();
         let count = 0;
-        for (let item of textContent.items)
-            count++; // console.log(item);
+        let elements = [];
+        for (let item of textContent.items) {
+            let transform = pdfjs.Util.transform(viewport.transform, item.transform);
+            elements.push({ text: item.str, x: transform[4], y: transform[5], width: item.width, height: item.height });
+            count++;
+        }
+        console.log(`${count} items.`);
+        // Sort the elements left to right, top to bottom.
+        //
+        // elements.sort();
+        // Find the text "Dev App No." and the first text horizontally closest.
+        let applicationNumberElement = findClosestElement(elements, "Dev App No", Direction.Right);
+        let reasonElement = applicationNumberElement ? findClosestElement(elements, applicationNumberElement.text, Direction.Right) : undefined;
+        let receivedDateElement = findClosestElement(elements, "Application Written Date", Direction.Right);
+        let addressElement = findClosestElement(elements, "Property Detail", Direction.Down);
+        if (applicationNumberElement !== undefined) {
+            console.log(`Application Number: ${applicationNumberElement.text}`);
+            console.log(`Reason: ${reasonElement.text}`);
+            console.log(`Received Date: ${receivedDateElement.text}`);
+            console.log(`Address: ${addressElement.text}`);
+        }
+        // Find the text "Dev App No." and the second text horizontally closest.
+        // Find the text "Application Written Date:" and the text horizontally closest.
+        // Find the text "Property Detail:" and the text vertically closest.
     }
-    console.log(`Complete: page count is ${pdf.numPages}.`);
+    console.log(`Page count is ${pdf.numPages}.`);
 }
 sqlite3.verbose();
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
@@ -345,5 +413,5 @@ function convertPdfToText(pdf) {
     ;
     return rows;
 }
-main().catch(error => console.error(error));
+readPdf().then(() => console.log("Complete.")).catch(error => console.error(error));
 //# sourceMappingURL=scraper.js.map
