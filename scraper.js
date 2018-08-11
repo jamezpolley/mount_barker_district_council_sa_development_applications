@@ -73,26 +73,20 @@ function findClosestElement(elements, text, direction) {
 }
 async function readPdf() {
     // Read the PDF.
-    let buffer = await fs.readFileSync("C:\\Temp\\Mount Barker District Council\\Monthly Building Report - June 2018.pdf");
-    // Parse the PDF.
+    let buffer = await fs.readFileSync("C:\\Temp\\Mount Barker District Council\\Monthly Building Report - July 2018.pdf");
+    // Parse the PDF.  Each page has details of a single application (which in some cases may
+    // overflow onto subsequent pages).
     const pdf = await pdfjs.getDocument({ data: buffer });
     for (let index = 0; index < pdf.numPages; index++) {
-        console.log(`Parsing page ${index + 1} of ${pdf.numPages}.`);
         let page = await pdf.getPage(index + 1);
-        let viewport = page.getViewport(1.0);
+        // Construct a text element for each item.
         let textContent = await page.getTextContent();
-        let count = 0;
-        let elements = [];
-        for (let item of textContent.items) {
+        let viewport = page.getViewport(1.0);
+        let elements = textContent.items.map(item => {
             let transform = pdfjs.Util.transform(viewport.transform, item.transform);
-            elements.push({ text: item.str, x: transform[4], y: transform[5], width: item.width, height: item.height });
-            count++;
-        }
-        console.log(`${count} items.`);
-        // Sort the elements left to right, top to bottom.
-        //
-        // elements.sort();
-        // Find the text "Dev App No." and the first text horizontally closest.
+            return { text: item.str, x: transform[4], y: transform[5], width: item.width, height: item.height };
+        });
+        // Find the application number, reason, received date and address in the elements.
         let applicationNumberElement = findClosestElement(elements, "Dev App No", Direction.Right);
         let reasonElement = applicationNumberElement ? findClosestElement(elements, applicationNumberElement.text, Direction.Right) : undefined;
         let receivedDateElement = findClosestElement(elements, "Application Written Date", Direction.Right);
@@ -103,11 +97,7 @@ async function readPdf() {
             console.log(`Received Date: ${receivedDateElement.text}`);
             console.log(`Address: ${addressElement.text}`);
         }
-        // Find the text "Dev App No." and the second text horizontally closest.
-        // Find the text "Application Written Date:" and the text horizontally closest.
-        // Find the text "Property Detail:" and the text vertically closest.
     }
-    console.log(`Page count is ${pdf.numPages}.`);
 }
 sqlite3.verbose();
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
