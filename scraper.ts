@@ -113,7 +113,7 @@ function isOverlap(element1: Element, element2: Element, direction: Direction) {
     return false;
 }
 
-// Find the closest element either right or down from the element with the specified text.
+// Finds the closest element either right or down from the element with the specified text.
 
 function findClosestElement(elements: Element[], text: string, direction: Direction) {
     text = text.toLowerCase();
@@ -145,7 +145,7 @@ async function parsePdf(url: string) {
     for (let index = 0; index < pdf.numPages; index++) {
         let page = await pdf.getPage(index + 1);
 
-        // Construct a text element for each item.
+        // Construct a text element for each item from the parsed PDF information.
 
         let textContent = await page.getTextContent();
         let viewport = await page.getViewport(1.0);
@@ -213,7 +213,7 @@ async function main() {
     let pdfUrls: string[] = [];
     for (let element of $("td.uContentListDesc a[href$='.pdf']").get()) {
         let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl).href;
-        if (!pdfUrls.some(url => url === pdfUrl))
+        if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
             pdfUrls.push(pdfUrl);
     }
 
