@@ -64,7 +64,7 @@ var Direction;
     Direction[Direction["Right"] = 0] = "Right";
     Direction[Direction["Down"] = 1] = "Down";
 })(Direction || (Direction = {}));
-// Calculates the Euclidean distance between two elements in the specified direction.
+// Calculates the square of the Euclidean distance between two elements in the specified direction.
 function calculateDistance(element1, element2, direction) {
     if (direction === Direction.Right) {
         let point1 = { x: element1.x + element1.width, y: element1.y + element1.height / 2 };

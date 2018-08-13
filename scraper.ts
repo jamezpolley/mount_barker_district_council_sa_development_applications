@@ -84,7 +84,7 @@ enum Direction {
     Down
 }
 
-// Calculates the Euclidean distance between two elements in the specified direction.
+// Calculates the square of the Euclidean distance between two elements in the specified direction.
 
 function calculateDistance(element1: Element, element2: Element, direction: Direction) {
     if (direction === Direction.Right) {
