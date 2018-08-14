@@ -5,5 +5,7 @@ data.sqlite
 node_modules
 package-lock.json
 
-# Ignore Visual Studio Code files.
-.vscode
+# Ignore most Visual Studio Code files.
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
