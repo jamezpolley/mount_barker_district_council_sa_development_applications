@@ -1,10 +1,6 @@
 // Parses the development application at the South Australian Mount Barker District Council web
 // site and places them in a database.
 //
-// In each VSCode session: to automatically compile this TypeScript script into JavaScript whenever
-// the TypeScript is changed and saved, press Ctrl+Shift+B and select "tsc:watch - tsconfig.json".
-// This starts a task that watches for changes to the TypeScript script.
-//
 // Michael Bone
 // 8th August 2018
 
