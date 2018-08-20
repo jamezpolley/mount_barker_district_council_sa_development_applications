@@ -19,7 +19,7 @@ import * as pdfjs from "pdfjs-dist";
 
 sqlite3.verbose();
 
-const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
+const DevelopmentApplicationsUrl = "http://www.mountbarker.sa.gov.au/developmentregister";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;
@@ -136,7 +136,7 @@ async function parsePdf(url: string) {
 
     // Read the PDF.
 
-    let buffer = await request({ url: url, encoding: null, proxy: process.env.MORPH_PROXY });
+    let buffer = await request({ url: url, encoding: null });
     await sleep(2000 + getRandom(0, 5) * 1000);
 
     // Parse the PDF.  Each page has details of a single application (which in some cases may
@@ -220,15 +220,16 @@ async function main() {
 
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
 
-    let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY });
+    let body = await request({ url: DevelopmentApplicationsUrl });
     let $ = cheerio.load(body);
     await sleep(2000 + getRandom(0, 5) * 1000);
 
     let pdfUrls: string[] = [];
     for (let element of $("td.uContentListDesc a[href$='.pdf']").get()) {
-        let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl).href;
-        if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
-            pdfUrls.push(pdfUrl);
+        let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl);
+        pdfUrl.protocol = "http";  // force http instead of https
+        if (!pdfUrls.some(url => url === pdfUrl.href))  // avoid duplicates
+            pdfUrls.push(pdfUrl.href);
     }
 
     if (pdfUrls.length === 0) {
