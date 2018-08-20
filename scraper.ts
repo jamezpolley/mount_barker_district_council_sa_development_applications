@@ -1,6 +1,10 @@
 // Parses the development application at the South Australian Mount Barker District Council web
 // site and places them in a database.
 //
+// In each VSCode session: to automatically compile this TypeScript script into JavaScript whenever
+// the TypeScript is changed and saved, press Ctrl+Shift+B and select "tsc:watch - tsconfig.json".
+// This starts a task that watches for changes to the TypeScript script.
+//
 // Michael Bone
 // 8th August 2018
 
@@ -117,11 +121,12 @@ function findClosestElement(elements: Element[], text: string, direction: Direct
     if (matchingElement === undefined)
         return undefined;
 
-    let closestElement: Element = undefined;
+    let closestElement: Element = { text: undefined, x: Number.MAX_VALUE, y: Number.MAX_VALUE, width: 0, height: 0 };
     for (let element of elements)
-        if (closestElement === undefined || (isOverlap(matchingElement, element, direction) && calculateDistance(matchingElement, element, direction) < calculateDistance(matchingElement, closestElement, direction)))
+        if (isOverlap(matchingElement, element, direction) && calculateDistance(matchingElement, element, direction) < calculateDistance(matchingElement, closestElement, direction))
             closestElement = element;
-    return closestElement;
+
+    return (closestElement.text === undefined) ? undefined : closestElement;
 }
 
 // Reads and parses development application details from the specified PDF.
@@ -161,27 +166,32 @@ async function parsePdf(url: string) {
 
         // Ensure that the development application details are valid.
 
-        if (applicationNumberElement !== undefined && applicationNumberElement.text.trim() !== "" && addressElement !== undefined && addressElement.text.trim() !== "") {
-            let receivedDate = moment.invalid();
-            if (receivedDateElement !== undefined)
-                receivedDate = moment(receivedDateElement.text.trim(), "D/MM/YYYY", true);  // allows the leading zero of the day to be omitted
+        if (applicationNumberElement === undefined ||
+            applicationNumberElement.text.trim() === "" ||
+            addressElement === undefined ||
+            addressElement.text.trim() === "" ||
+            addressElement.text.trim().toLowerCase().startsWith("property detail"))
+            continue;
 
-            let reason = "No description provided";
-            if (reasonElement !== null && reasonElement.text.trim() !== "")
-                reason = reasonElement.text.trim();
+        let receivedDate = moment.invalid();
+        if (receivedDateElement !== undefined)
+            receivedDate = moment(receivedDateElement.text.trim(), "D/MM/YYYY", true);  // allows the leading zero of the day to be omitted
 
-            let developmentApplication = {
-                applicationNumber: applicationNumberElement.text.trim().replace(/\s/g, ""),
-                address: addressElement.text.trim(),
-                reason: reason,
-                informationUrl: url,
-                commentUrl: CommentUrl,
-                scrapeDate: moment().format("YYYY-MM-DD"),
-                receivedDate: receivedDate.isValid() ? receivedDate.format("YYYY-MM-DD") : ""
-            }
+        let reason = "No description provided";
+        if (reasonElement !== null && reasonElement.text.trim() !== "")
+            reason = reasonElement.text.trim();
 
-            developmentApplications.push(developmentApplication);
+        let developmentApplication = {
+            applicationNumber: applicationNumberElement.text.trim().replace(/\s/g, ""),
+            address: addressElement.text.trim(),
+            reason: reason,
+            informationUrl: url,
+            commentUrl: CommentUrl,
+            scrapeDate: moment().format("YYYY-MM-DD"),
+            receivedDate: receivedDate.isValid() ? receivedDate.format("YYYY-MM-DD") : ""
         }
+
+        developmentApplications.push(developmentApplication);
     }
 
     return developmentApplications;
@@ -234,8 +244,6 @@ async function main() {
     selectedPdfUrls.push(pdfUrls.shift());
     if (pdfUrls.length > 0)
         selectedPdfUrls.push(pdfUrls[getRandom(1, pdfUrls.length)]);
-    if (getRandom(0, 2) === 0)
-        selectedPdfUrls.reverse();
 
     for (let pdfUrl of selectedPdfUrls) {
         console.log(`Parsing document: ${pdfUrl}`);
