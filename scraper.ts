@@ -31,8 +31,12 @@ async function initializeDatabase() {
     return new Promise((resolve, reject) => {
         let database = new sqlite3.Database("data.sqlite");
         database.serialize(() => {
-            database.run("create table if not exists [data] ([council_reference] text primary key, [address] text, [description] text, [info_url] text, [comment_url] text, [date_scraped] text, [date_received] text, [on_notice_from] text, [on_notice_to] text)");
-            resolve(database);
+            database.all("PRAGMA table_info('data')", (error, rows) => {
+                if (rows.some(row => row.name === "on_notice_from"))
+                    database.run("drop table [data]");  // ensure that the on_notice_from (and on_notice_to) columns are removed
+                database.run("create table if not exists [data] ([council_reference] text primary key, [address] text, [description] text, [info_url] text, [comment_url] text, [date_scraped] text, [date_received] text)");
+                resolve(database);
+            });
         });
     });
 }
@@ -41,26 +45,24 @@ async function initializeDatabase() {
 
 async function insertRow(database, developmentApplication) {
     return new Promise((resolve, reject) => {
-        let sqlStatement = database.prepare("insert or ignore into [data] values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        let sqlStatement = database.prepare("insert or ignore into [data] values (?, ?, ?, ?, ?, ?, ?)");
         sqlStatement.run([
             developmentApplication.applicationNumber,
             developmentApplication.address,
-            developmentApplication.reason,
+            developmentApplication.description,
             developmentApplication.informationUrl,
             developmentApplication.commentUrl,
             developmentApplication.scrapeDate,
-            developmentApplication.receivedDate,
-            null,
-            null
+            developmentApplication.receivedDate
         ], function(error, row) {
             if (error) {
                 console.error(error);
                 reject(error);
             } else {
                 if (this.changes > 0)
-                    console.log(`    Inserted: application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and reason \"${developmentApplication.reason}\" into the database.`);
+                    console.log(`    Inserted: application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and description \"${developmentApplication.description}\" into the database.`);
                 else
-                    console.log(`    Skipped: application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and reason \"${developmentApplication.reason}\" because it was already present in the database.`);
+                    console.log(`    Skipped: application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and description \"${developmentApplication.description}\" because it was already present in the database.`);
                 sqlStatement.finalize();  // releases any locks
                 resolve(row);
             }
@@ -157,11 +159,11 @@ async function parsePdf(url: string) {
             return { text: item.str, x: transform[4], y: transform[5], width: item.width, height: item.height };
         })
 
-        // Find the application number, reason, received date and address in the elements (based
-        // on proximity to known text such as "Dev App No").
+        // Find the application number, description, received date and address in the elements
+        // (based on proximity to known text such as "Dev App No").
 
         let applicationNumberElement = findClosestElement(elements, "Dev App No", Direction.Right);
-        let reasonElement = applicationNumberElement ? findClosestElement(elements, applicationNumberElement.text, Direction.Right) : undefined;
+        let descriptionElement = applicationNumberElement ? findClosestElement(elements, applicationNumberElement.text, Direction.Right) : undefined;
         let receivedDateElement = findClosestElement(elements, "Application Rec'd Council", Direction.Right);
         let addressElement = findClosestElement(elements, "Property Detail", Direction.Down);
 
@@ -178,14 +180,14 @@ async function parsePdf(url: string) {
         if (receivedDateElement !== undefined)
             receivedDate = moment(receivedDateElement.text.trim(), "D/MM/YYYY", true);  // allows the leading zero of the day to be omitted
 
-        let reason = "No description provided";
-        if (reasonElement !== null && reasonElement.text.trim() !== "")
-            reason = reasonElement.text.trim();
+        let description = "No description provided";
+        if (descriptionElement !== null && descriptionElement.text.trim() !== "")
+            description = descriptionElement.text.trim();
 
         let developmentApplication = {
             applicationNumber: applicationNumberElement.text.trim().replace(/\s/g, ""),
             address: addressElement.text.trim(),
-            reason: reason,
+            description: description,
             informationUrl: url,
             commentUrl: CommentUrl,
             scrapeDate: moment().format("YYYY-MM-DD"),
