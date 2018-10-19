@@ -157,7 +157,7 @@ async function parsePdf(url: string) {
         let elements: Element[] = textContent.items.map(item => {
             let transform = pdfjs.Util.transform(viewport.transform, item.transform);
             return { text: item.str, x: transform[4], y: transform[5], width: item.width, height: item.height };
-        })
+        });
 
         // Find the application number, description, received date and address in the elements
         // (based on proximity to known text such as "Dev App No").
