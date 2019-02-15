@@ -228,10 +228,11 @@ async function main() {
     await sleep(2000 + getRandom(0, 5) * 1000);
 
     let pdfUrls: string[] = [];
-    for (let element of $("td.uContentListDesc a[href$='.pdf']").get()) {
+    for (let element of $("td.uContentListDesc a").get()) {
         let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl).href;
-        if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
-            pdfUrls.push(pdfUrl);
+        if (pdfUrl.toLowerCase().includes(".pdf"))
+            if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
+                pdfUrls.push(pdfUrl);
     }
 
     if (pdfUrls.length === 0) {
@@ -246,7 +247,7 @@ async function main() {
     let selectedPdfUrls: string[] = [];
     selectedPdfUrls.push(pdfUrls.shift());
     if (pdfUrls.length > 0)
-        selectedPdfUrls.push(pdfUrls[getRandom(1, pdfUrls.length)]);
+        selectedPdfUrls.push(pdfUrls[getRandom(0, pdfUrls.length)]);
 
     for (let pdfUrl of selectedPdfUrls) {
         console.log(`Parsing document: ${pdfUrl}`);
