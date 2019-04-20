@@ -20,6 +20,7 @@ import * as pdfjs from "pdfjs-dist";
 sqlite3.verbose();
 
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
+const DevelopmentApplicationsYearUrl = "https://www.mountbarker.sa.gov.au/page.aspx?u=939&year={0}";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;
@@ -217,26 +218,44 @@ function sleep(milliseconds: number) {
 async function main() {
     // Ensure that the database exists.
 
-    let database = await initializeDatabase();
-    
-    // Retrieve the page that contains the links to the PDFs.
+    let database = await initializeDatabase();    
+
+    // Read the development applications page for another random year.
+
+    let randomYear = getRandom(2012, moment().year()).toString();
+    let randomDevelopmentApplicationsYearUrl = DevelopmentApplicationsYearUrl.replace(/\{0\}/g, encodeURIComponent(randomYear));
+
+    console.log(`Retrieving page: ${randomDevelopmentApplicationsYearUrl}`);
+
+    let body = await request({ url: randomDevelopmentApplicationsYearUrl, rejectUnauthorized: false, proxy: process.env.MORPH_PROXY });
+    await sleep(2000 + getRandom(0, 5) * 1000);
+    let $ = cheerio.load(body);
+
+    let randomPdfUrls: string[] = [];
+    for (let element of $("td.uContentListDesc a").get()) {
+        let pdfUrl = new urlparser.URL(element.attribs.href, randomDevelopmentApplicationsYearUrl).href
+        if (pdfUrl.toLowerCase().includes(".pdf"))
+            if (!randomPdfUrls.some(url => url === pdfUrl))
+                randomPdfUrls.push(pdfUrl);
+    }
+
+    // Retrieve the page that contains the links to the PDFs for this year.
 
     console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
 
-    let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY });
-    let $ = cheerio.load(body);
+    body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY });
+    $ = cheerio.load(body);
     await sleep(2000 + getRandom(0, 5) * 1000);
 
     let pdfUrls: string[] = [];
-    for (let element of $("td.uContentListDesc a").get()) {
+    for (let element of $("div.DMI-filecontainer a.DMI-filetitle").get()) {
         let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl).href;
-        if (pdfUrl.toLowerCase().includes(".pdf"))
-            if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
-                pdfUrls.push(pdfUrl);
+        if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
+            pdfUrls.push(pdfUrl);
     }
 
-    if (pdfUrls.length === 0) {
-        console.log("No PDF URLs were found on the page.");
+    if (pdfUrls.length === 0 && randomPdfUrls.length === 0) {
+        console.log("No PDF URLs were found on the pages.");
         return;
     }
 
@@ -245,7 +264,8 @@ async function main() {
     // process).
 
     let selectedPdfUrls: string[] = [];
-    selectedPdfUrls.push(pdfUrls.shift());
+    selectedPdfUrls.push(pdfUrls.shift());  // the most recent PDF
+    pdfUrls = pdfUrls.concat(randomPdfUrls);
     if (pdfUrls.length > 0)
         selectedPdfUrls.push(pdfUrls[getRandom(0, pdfUrls.length)]);
 
