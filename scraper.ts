@@ -20,7 +20,7 @@ import * as pdfjs from "pdfjs-dist";
 sqlite3.verbose();
 
 const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
-const DevelopmentApplicationsYearUrl = "https://www.mountbarker.sa.gov.au/page.aspx?u=939&year={0}";
+const DevelopmentApplicationsYearUrl = "https://www.mountbarker.sa.gov.au/build/plan-and-develop/development-register?f.Meeting+date%7Cd=d%3D{0}+%3A%3A+{0}&num_ranks=50&fmo=true&collection=mount-barker-council-minutes-and-agenda"
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;
@@ -229,9 +229,9 @@ async function main() {
     let $ = cheerio.load(body);
 
     let randomPdfUrls: string[] = [];
-    for (let element of $("td.uContentListDesc a").get()) {
+    for (let element of $("ul.result-listing a.result-item__link").get()) {
         let pdfUrl = new urlparser.URL(element.attribs.href, randomDevelopmentApplicationsYearUrl).href
-        if (pdfUrl.toLowerCase().includes(".pdf"))
+        if (pdfUrl.toLowerCase().includes("report"))
             if (!randomPdfUrls.some(url => url === pdfUrl))
                 randomPdfUrls.push(pdfUrl);
     }
@@ -245,9 +245,9 @@ async function main() {
     await sleep(2000 + getRandom(0, 5) * 1000);
 
     let pdfUrls: string[] = [];
-    for (let element of $("div.DMI-filecontainer a.DMI-filetitle").get()) {
+    for (let element of $("div.content-container a").get()) {
         let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl).href;
-        if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
+        if (pdfUrl.toLowerCase().includes("register") && !pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
             pdfUrls.push(pdfUrl);
     }
 
