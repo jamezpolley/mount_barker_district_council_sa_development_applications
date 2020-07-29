@@ -235,8 +235,6 @@ async function main() {
 
     // Retrieve the page that contains the links to the archived PDFs.
 
-    let randomDevelopmentApplicationsYearUrl = DevelopmentApplicationsArchiveUrl;
-
     console.log(`Retrieving page: ${DevelopmentApplicationsArchiveUrl}`);
 
     body = await request({ url: DevelopmentApplicationsArchiveUrl, rejectUnauthorized: false, proxy: process.env.MORPH_PROXY });
