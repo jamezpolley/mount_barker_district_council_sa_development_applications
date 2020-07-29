@@ -19,8 +19,8 @@ import * as pdfjs from "pdfjs-dist";
 
 sqlite3.verbose();
 
-const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
-const DevelopmentApplicationsYearUrl = "https://www.mountbarker.sa.gov.au/build/plan-and-develop/development-register?f.Meeting+date%7Cd=d%3D{0}+%3A%3A+{0}&num_ranks=50&fmo=true&collection=mount-barker-council-minutes-and-agenda"
+const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/build/plan-and-develop/developmentregister";
+const DevelopmentApplicationsArchiveUrl = "https://www.mountbarker.sa.gov.au/build/plan-and-develop/development-register";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;
@@ -60,7 +60,7 @@ async function insertRow(database, developmentApplication) {
                 console.error(error);
                 reject(error);
             } else {
-                console.log(`    Saved: application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and description \"${developmentApplication.description}\" into the database.`);
+                console.log(`    Saved application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and description \"${developmentApplication.description}\" to the database.`);
                 sqlStatement.finalize();  // releases any locks
                 resolve(row);
             }
@@ -217,44 +217,43 @@ async function main() {
 
     let database = await initializeDatabase();    
 
-    // Read the development applications page for another random year.
+    // Retrieve the page that contains the links to the current PDFs.
 
-    let randomYear = getRandom(2012, moment().year()).toString();
-    let randomDevelopmentApplicationsYearUrl = DevelopmentApplicationsYearUrl.replace(/\{0\}/g, encodeURIComponent(randomYear));
+    let pdfUrls: string[] = [];
 
-    console.log(`Retrieving page: ${randomDevelopmentApplicationsYearUrl}`);
-
-    let body = await request({ url: randomDevelopmentApplicationsYearUrl, rejectUnauthorized: false, proxy: process.env.MORPH_PROXY });
+    console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
+    
+    let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY });
     await sleep(2000 + getRandom(0, 5) * 1000);
     let $ = cheerio.load(body);
 
-    let randomPdfUrls: string[] = [];
-    for (let element of $("ul.result-listing a.result-item__link").get()) {
-        let pdfUrl = new urlparser.URL(element.attribs.href, randomDevelopmentApplicationsYearUrl).href
-        if (pdfUrl.toLowerCase().includes("report"))
-            if (!randomPdfUrls.some(url => url === pdfUrl))
-                randomPdfUrls.push(pdfUrl);
-    }
-
-    // Retrieve the page that contains the links to the PDFs for this year.
-
-    console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
-
-    body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY });
-    $ = cheerio.load(body);
-    await sleep(2000 + getRandom(0, 5) * 1000);
-
-    let pdfUrls: string[] = [];
-    for (let element of $("div.content-container a").get()) {
+    for (let element of $("h3.generic-list__title a").get()) {
         let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl).href;
-        if (pdfUrl.toLowerCase().includes("register") && !pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
+        if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
             pdfUrls.push(pdfUrl);
     }
 
-    if (pdfUrls.length === 0 && randomPdfUrls.length === 0) {
+    // Retrieve the page that contains the links to the archived PDFs.
+
+    console.log(`Retrieving page: ${DevelopmentApplicationsArchiveUrl}`);
+
+    body = await request({ url: DevelopmentApplicationsArchiveUrl, rejectUnauthorized: false, proxy: process.env.MORPH_PROXY });
+    await sleep(2000 + getRandom(0, 5) * 1000);
+    $ = cheerio.load(body);
+
+    for (let element of $("h3.generic-list__title a").get()) {
+        let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsArchiveUrl).href
+        if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
+            pdfUrls.push(pdfUrl);
+    }
+
+    // Check that at least one PDF file was found.
+
+    if (pdfUrls.length === 0) {
         console.log("No PDF URLs were found on the pages.");
         return;
     }
+    console.log(`Found ${pdfUrls.length} PDF URL(s) on the pages.`);
 
     // Select the most recent PDF.  And randomly select one other PDF (avoid processing all PDFs
     // at once because this may use too much memory, resulting in morph.io terminating the current
@@ -262,7 +261,6 @@ async function main() {
 
     let selectedPdfUrls: string[] = [];
     selectedPdfUrls.push(pdfUrls.shift());  // the most recent PDF
-    pdfUrls = pdfUrls.concat(randomPdfUrls);
     if (pdfUrls.length > 0)
         selectedPdfUrls.push(pdfUrls[getRandom(0, pdfUrls.length)]);
 
