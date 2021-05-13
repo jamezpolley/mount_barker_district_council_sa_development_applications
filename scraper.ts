@@ -19,7 +19,8 @@ import * as pdfjs from "pdfjs-dist";
 
 sqlite3.verbose();
 
-const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/developmentregister";
+const DevelopmentApplicationsUrl = "https://www.mountbarker.sa.gov.au/build/plan-and-develop/developmentregister";
+const DevelopmentApplicationsArchiveUrl = "https://www.mountbarker.sa.gov.au/build/plan-and-develop/development-register";
 const CommentUrl = "mailto:council@mountbarker.sa.gov.au";
 
 declare const global: any;
@@ -45,7 +46,7 @@ async function initializeDatabase() {
 
 async function insertRow(database, developmentApplication) {
     return new Promise((resolve, reject) => {
-        let sqlStatement = database.prepare("insert or ignore into [data] values (?, ?, ?, ?, ?, ?, ?)");
+        let sqlStatement = database.prepare("insert or replace into [data] values (?, ?, ?, ?, ?, ?, ?)");
         sqlStatement.run([
             developmentApplication.applicationNumber,
             developmentApplication.address,
@@ -59,10 +60,7 @@ async function insertRow(database, developmentApplication) {
                 console.error(error);
                 reject(error);
             } else {
-                if (this.changes > 0)
-                    console.log(`    Inserted: application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and description \"${developmentApplication.description}\" into the database.`);
-                else
-                    console.log(`    Skipped: application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and description \"${developmentApplication.description}\" because it was already present in the database.`);
+                console.log(`    Saved application \"${developmentApplication.applicationNumber}\" with address \"${developmentApplication.address}\" and description \"${developmentApplication.description}\" to the database.`);
                 sqlStatement.finalize();  // releases any locks
                 resolve(row);
             }
@@ -157,7 +155,7 @@ async function parsePdf(url: string) {
         let elements: Element[] = textContent.items.map(item => {
             let transform = pdfjs.Util.transform(viewport.transform, item.transform);
             return { text: item.str, x: transform[4], y: transform[5], width: item.width, height: item.height };
-        })
+        });
 
         // Find the application number, description, received date and address in the elements
         // (based on proximity to known text such as "Dev App No").
@@ -217,36 +215,54 @@ function sleep(milliseconds: number) {
 async function main() {
     // Ensure that the database exists.
 
-    let database = await initializeDatabase();
-    
-    // Retrieve the page that contains the links to the PDFs.
+    let database = await initializeDatabase();    
 
-    console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
-
-    let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY });
-    let $ = cheerio.load(body);
-    await sleep(2000 + getRandom(0, 5) * 1000);
+    // Retrieve the page that contains the links to the current PDFs.
 
     let pdfUrls: string[] = [];
-    for (let element of $("td.uContentListDesc a[href$='.pdf']").get()) {
+
+    console.log(`Retrieving page: ${DevelopmentApplicationsUrl}`);
+    
+    let body = await request({ url: DevelopmentApplicationsUrl, proxy: process.env.MORPH_PROXY });
+    await sleep(2000 + getRandom(0, 5) * 1000);
+    let $ = cheerio.load(body);
+
+    for (let element of $("h3.generic-list__title a").get()) {
         let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsUrl).href;
         if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
             pdfUrls.push(pdfUrl);
     }
 
+    // Retrieve the page that contains the links to the archived PDFs.
+
+    console.log(`Retrieving page: ${DevelopmentApplicationsArchiveUrl}`);
+
+    body = await request({ url: DevelopmentApplicationsArchiveUrl, rejectUnauthorized: false, proxy: process.env.MORPH_PROXY });
+    await sleep(2000 + getRandom(0, 5) * 1000);
+    $ = cheerio.load(body);
+
+    for (let element of $("h3.generic-list__title a").get()) {
+        let pdfUrl = new urlparser.URL(element.attribs.href, DevelopmentApplicationsArchiveUrl).href
+        if (!pdfUrls.some(url => url === pdfUrl))  // avoid duplicates
+            pdfUrls.push(pdfUrl);
+    }
+
+    // Check that at least one PDF file was found.
+
     if (pdfUrls.length === 0) {
-        console.log("No PDF URLs were found on the page.");
+        console.log("No PDF URLs were found on the pages.");
         return;
     }
+    console.log(`Found ${pdfUrls.length} PDF URL(s) on the pages.`);
 
     // Select the most recent PDF.  And randomly select one other PDF (avoid processing all PDFs
     // at once because this may use too much memory, resulting in morph.io terminating the current
     // process).
 
     let selectedPdfUrls: string[] = [];
-    selectedPdfUrls.push(pdfUrls.shift());
+    selectedPdfUrls.push(pdfUrls.shift());  // the most recent PDF
     if (pdfUrls.length > 0)
-        selectedPdfUrls.push(pdfUrls[getRandom(1, pdfUrls.length)]);
+        selectedPdfUrls.push(pdfUrls[getRandom(0, pdfUrls.length)]);
 
     for (let pdfUrl of selectedPdfUrls) {
         console.log(`Parsing document: ${pdfUrl}`);
